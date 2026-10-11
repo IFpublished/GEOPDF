@@ -1222,7 +1222,12 @@ function coordBlock(ll, g, extra) {
 /* ---------------- panel ---------------- */
 function gpsLine() {
   const gp = st.gps.pos; if (st.gps.state === 'off') return '';
-  if (!gp) return `<div class="row hint" style="margin-bottom:6px">${ic('gps')} Mencari sinyal GPS…</div>`;
+  if (!gp) {
+    const sec = Math.round((Date.now() - (st.gps.t0 || Date.now())) / 1000);
+    const t = sec >= 60 ? Math.floor(sec / 60) + ' mnt ' + (sec % 60) + ' dtk' : sec + ' dtk';
+    return `<div class="row hint" style="margin-bottom:6px">${ic('gps')} Mencari sinyal GPS… ${t}</div>` +
+      (sec >= 15 ? `<div class="hint" style="margin-bottom:6px">Tanpa internet, kunci satelit pertama bisa 1–5 menit. Berdiri di tempat terbuka dan biarkan layar tetap menyala.</div>` : '');
+  }
   const g = geoForLL([gp.lon, gp.lat]);
   return `<div class="row" style="margin-bottom:6px"><span class="chip ${gp.acc <= 10 ? 'ok' : 'warn'}">GPS ±${fmtN(gp.acc, 0)} m</span>` +
     `<span class="chip ${g ? 'ok' : 'warn'}">${g ? 'Di dalam peta' : 'Di luar peta'}</span>` +
@@ -1390,15 +1395,16 @@ function gpsDiag(reason, detail) {
 function gpsStart() {
   if (!('geolocation' in navigator)) { gpsDiag('Browser ini tidak menyediakan API lokasi.'); return; }
   if (!window.isSecureContext) { gpsDiag(''); return; }
-  setGpsState('follow'); st.gps.first = true; st.gps.errShown = false; renderPanel();
-  st.gps.watch = navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy: true, maximumAge: 1000, timeout: 30000 });
+  setGpsState('follow'); st.gps.first = true; st.gps.errShown = false; st.gps.t0 = Date.now(); renderPanel();
+  clearInterval(st.gps.tick); st.gps.tick = setInterval(() => { if (st.gps.pos || st.gps.state === 'off') { clearInterval(st.gps.tick); return; } renderPanel(); }, 1000);
+  st.gps.watch = navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy: true, maximumAge: 1000 });
   clearTimeout(st.gps.dog);
-  st.gps.dog = setTimeout(() => { if (st.gps.state !== 'off' && !st.gps.pos) toast('GPS belum merespons. Pastikan lokasi HP aktif, coba di tempat terbuka.', 5000); }, 20000);
+
   wake(true);
 }
 function gpsStop() {
   if (st.gps.watch != null) navigator.geolocation.clearWatch(st.gps.watch);
-  st.gps.watch = null; st.gps.pos = null; setGpsState('off'); $('#banner').classList.add('hidden'); wake(false); renderPanel(); requestDraw();
+  st.gps.watch = null; st.gps.pos = null; clearInterval(st.gps.tick); setGpsState('off'); $('#banner').classList.add('hidden'); wake(false); renderPanel(); requestDraw();
 }
 $('#btnGps').onclick = () => {
   if (!st.page) return;
