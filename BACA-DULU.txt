@@ -1,0 +1,22 @@
+GeoPDF Viewer – versi PWA (supaya GPS jalan di Chrome Android)
+
+KENAPA PERLU DI-HOSTING?
+Chrome Android hanya mengizinkan GPS untuk halaman "aman" (https://).
+File HTML yang dibuka dari file manager/WhatsApp/Drive punya alamat content://,
+jadi GPS selalu diblokir walaupun izin lokasi sudah diberikan.
+
+CARA PASANG (sekali saja, gratis) – GitHub Pages
+1. Buat repo baru di github.com, misalnya "geopdf".
+2. Upload SEMUA file di folder ini (index.html, sw.js, manifest.webmanifest,
+   icon-192.png, icon-512.png) ke repo itu.
+3. Repo → Settings → Pages → Source: "Deploy from a branch", Branch: main, folder / (root) → Save.
+4. Tunggu 1–2 menit, buka https://<username>.github.io/geopdf/ di Chrome HP.
+5. Menu Chrome (⋮) → "Tambahkan ke layar utama" / "Instal aplikasi".
+
+SETELAH TERPASANG
+- Ikon GeoPDF muncul di HP, dan aplikasinya terbuka walau tanpa internet.
+- Peta yang pernah dibuka tersimpan di daftar "Peta tersimpan".
+- Penanda (marker) disimpan per file peta di HP itu.
+
+Catatan: file PDF tidak pernah di-upload ke mana pun. Semua diproses di HP.
+Hosting lain yang mendukung https juga bisa (Netlify, Cloudflare Pages, dsb.).
